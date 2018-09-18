@@ -13,8 +13,8 @@ function pushPool(id, cb, room) {
     room = room || 0;
 
     if (room != 0)
-        client.LPUSH("room0", id);
-    return client.LPUSH("room" + room, id, cb);
+        client.RPUSH("room0", id);
+    return client.RPUSH("room" + room, id, cb);
 }
 
 function getPool(ind, cb, room) {
@@ -26,14 +26,14 @@ function popPool(cb, room) {
     room = room || 0;
 
     if (room != 0) {
-        return client.RPOP("room" + room, (_, id) => {
-            client.RPOP("room0", (_, id2) => {
+        return client.LPOP("room" + room, (_, id) => {
+            client.LPOP("room0", (_, id2) => {
                 assert.equal(id, id2);
                 cb(null, id);
             })
         });
     } 
-    return client.RPOP("room0", cb);
+    return client.LPOP("room0", cb);
 } 
 
 module.exports = {

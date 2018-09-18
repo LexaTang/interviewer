@@ -24,8 +24,10 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
+    "bluebird": "^3.5.2",
     "pg": "^7.4.3",
     "redis": "^2.8.0",
+    "should": "^13.2.3",
     "socket.io": "^2.1.1",
     "websocket": "^1.0.26"
   }
