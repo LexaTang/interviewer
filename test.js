@@ -5,7 +5,7 @@ var config = require('./config').config;
 describe('Requirement', () => {
     it('PostgreSQL', () => require('pg'));
     it('Redis', () => require('redis'));
-    // it('Socket.io', () => require('socket.io'));
+    it('Socket.io', () => require('socket.io'));
 });
 
 describe('Config', () => {
