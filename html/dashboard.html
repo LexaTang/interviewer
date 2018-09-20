@@ -13,7 +13,7 @@
 <body>
     <header class="navbar navbar-dark bg-primary">
         <h1 class="navbar-brand">软件部面试系统</h1>
-        <button id="connstat" class="btn btn-success" >在线</button>
+        <button id="connstat" class="btn btn-warning">等待连接</button>
     </header>
     <div class="container-fluid">
         <div class="row">
@@ -55,25 +55,31 @@
             </div>
             <div class="col-sm-3 btn-group-vertical py-4">
                 <div class="btn-group" role="group">
-                    <button id="room1" type="button" class="btn btn-success" disabled>空</button>
-                    <button id="room1" type="button" class="btn btn-secondary"disabled>空</button>
+                    <button id="room1" type="button" class="btn btn-warning" disabled>空</button>
+                    <button id="roomq1" type="button" class="btn btn-secondary" disabled>空</button>
                 </div>
                 <div class="btn-group" role="group">
-                    <button id="room2" type="button" class="btn btn-success" disabled>空</button>
-                    <button id="room2" type="button" class="btn btn-secondary"disabled>空</button>
+                    <button id="room2" type="button" class="btn btn-warning" disabled>空</button>
+                    <button id="roomq2" type="button" class="btn btn-secondary" disabled>空</button>
                 </div>
                 <div class="btn-group" role="group">
-                    <button id="room3" type="button" class="btn btn-success" disabled>空</button>
-                    <button id="room3" type="button" class="btn btn-secondary"disabled>空</button>
+                    <button id="room3" type="button" class="btn btn-warning" disabled>空</button>
+                    <button id="roomq3" type="button" class="btn btn-secondary" disabled>空</button>
                 </div>
                 <div class="btn-group" role="group">
-                    <button id="room4" type="button" class="btn btn-success" disabled>空</button>
-                    <button id="room4" type="button" class="btn btn-secondary"disabled>空</button>
+                    <button id="room4" type="button" class="btn btn-warning" disabled>空</button>
+                    <button id="roomq4" type="button" class="btn btn-secondary" disabled>空</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button id="room5" type="button" class="btn btn-warning" disabled>空</button>
+                    <button id="roomq5" type="button" class="btn btn-secondary" disabled>空</button>
                 </div>
             </div>
             <div class="col py-4">
                 <div class="card m-auto">
-                    <div class="card-header"><h2>总队列</h2></div>
+                    <div class="card-header">
+                        <h2>总队列</h2>
+                    </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="btn btn-info col-3 m-2">1500720134示例姓名</div>
@@ -91,6 +97,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+    <script src="http://localhost:3001/socket.io/socket.io.js"></script>
     <script>
         function notStuNo(stuNo) {
             if (stuNo.length != 10) {
@@ -101,8 +108,67 @@
             return false;
         }
 
-        window.onload = function() {
-            document.getElementById('queue').onclick = function() {
+        window.onload = function () {
+            const socket = io('http://localhost:3001');
+
+            var iId = document.getElementById('iId');
+            var iNo = document.getElementById('iNo');
+            var iName = document.getElementById('iName');
+            var iSex = document.getElementById('iSex');
+            var iScho = document.getElementById('iScho');
+            var iMaj = document.getElementById('iMaj');
+            var iPhone = document.getElementById('iPhone');
+            var iMail = document.getElementById('iMail');
+            var iQQ = document.getElementById('iQQ');
+            var iBase = document.getElementById('iBase');
+            var iSum = document.getElementById('iSum');
+
+            var rooms = new Array();
+            var roomp = new Array();
+
+            for (i = 1; i <= 5; i++) {
+                rooms.push(document.getElementById('room' + i));
+                roomp.push(document.getElementById('roomq' + i));
+            }
+
+            function offline() {
+                connstat.innerHTML = '离线';
+                connstat.className = 'btn btn-danger';
+            }
+
+            function online() {
+                connstat.innerHTML = '在线';
+                connstat.className = 'btn btn-success';
+            }
+
+            socket.on('connect', function () {
+                socket.send('i am dashb');
+
+                socket.on('message', function (msg) {
+                    console.log(msg);
+                    if (msg == 'welc rjb int sys') {
+                        online();
+                    }
+                });
+
+                socket.on('room', function(msg) {
+                    rooms[msg.slice(6) - 1].className = 'btn btn-success';
+                    console.log(msg);
+                });
+
+                socket.on('offl', function(room) {
+                    rooms[room - 1].className = 'btn btn-danger';
+                    console.log('offline' + room);
+                })
+
+                socket.on('disconnect', function (reason) {
+                    offline();
+                    if (reason === 'io server disconnect') socket.connect();
+                    console.log('Disconnected:' + reason);
+                });
+            });
+
+            document.getElementById('queue').onclick = function () {
                 var stuNo = document.getElementById('stuNo').value;
 
                 if (notStuNo(stuNo)) return false;
@@ -111,8 +177,8 @@
 
                 return false;
             }
-            
-            document.getElementById('stuNo').onblur = function() {
+
+            document.getElementById('stuNo').onblur = function () {
                 var stuNo = document.getElementById('stuNo').value;
 
                 if (notStuNo(stuNo)) return false;
@@ -122,7 +188,7 @@
                 return false;
             }
 
-            document.getElementById('push').onclick = function() {
+            document.getElementById('push').onclick = function () {
                 var stuNo = document.getElementById('stuNo').value;
 
                 if (notStuNo(stuNo)) return false;

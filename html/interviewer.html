@@ -13,7 +13,7 @@
 <body>
     <header class="navbar navbar-dark bg-primary">
         <h1 class="navbar-brand">软件部面试系统</h1>
-        <button id="connstat" class="btn btn-success">在线</button>
+        <button id="connstat" class="btn btn-warning">等待连接</button>
     </header>
     <div class="container-fluid">
         <div class="row">
@@ -69,12 +69,67 @@
             crossorigin="anonymous"></script>
         <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+        <script src="http://localhost:3001/socket.io/socket.io.js"></script>
         <script>
 
             window.onload = function () {
-                document.getElementById('submit').onclick = function () {
+                const socket = io('http://localhost:3001');
 
+                var intNum = window.location.search.slice(1);
+
+                var connstat = document.getElementById('connstat');
+                var grade = document.getElementById('grade');
+                var comment = document.getElementById('comment');
+
+                var iId = document.getElementById('iId');
+                var iNo = document.getElementById('iNo');
+                var iName = document.getElementById('iName');
+                var iSex = document.getElementById('iSex');
+                var iScho = document.getElementById('iScho');
+                var iMaj = document.getElementById('iMaj');
+                var iPhone = document.getElementById('iPhone');
+                var iMail = document.getElementById('iMail');
+                var iQQ = document.getElementById('iQQ');
+                var iBase = document.getElementById('iBase');
+                var iSum = document.getElementById('iSum');
+
+                function offline() {
+                    connstat.innerHTML = '离线';
+                    connstat.className = 'btn btn-danger';
+                }
+                function online() {
+                    connstat.innerHTML = '在线';
+                    connstat.className = 'btn btn-success';
+                }
+
+                socket.on('connect', function() {
+                    socket.send('i am inter' + intNum);
+
+                    socket.on('message', function(msg) {
+                        console.log(msg);
+                        if (msg == 'welc rjb int sys') {
+                            online();
+                        }
+                    });
+
+                    socket.on('disconnect', function(reason) {
+                        offline();
+                        if (reason === 'io server disconnect') socket.connect();
+                        console.log('Disconnected:' + reason);  
+                    });
+                });
+
+                function objGrade() {
+                    return {stuno: iNo.value, grade: grade.value, comment: comment.value, intNum: intNum}
+                }
+
+                document.getElementById('submit').onclick = function () {
                     console.log('开始提交');
+                    console.log(objGrade());
+                    socket.emit('grade', objGrade(), (ack) => {
+                        console.log(ack);
+                        if (ack != '提交成功') alert('提交失败，请检查js控制台');   
+                    });
 
                     return false;
                 }

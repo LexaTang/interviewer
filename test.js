@@ -24,7 +24,7 @@ describe('Pool', () => {
                 return;
             }
             i++;
-            pool.getPool(i, recall);
+            pool.getPool(0, recall, i);
         }
 
         recall();
@@ -57,6 +57,12 @@ describe('Pool', () => {
     it('Get the room1', (done) => 
         pool.getPool(0, (_, id) => {
             assert.equal(id, 1500720134);
+            done();
+    }), 1);
+
+    it('Shortest room queue', (done) => 
+        pool.shortest((room) => {
+            assert.notEqual(room, 1);
             done();
     }), 1);
 
