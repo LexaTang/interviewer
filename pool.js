@@ -8,6 +8,7 @@ client.on("error", (err) => console.log("Redis error:" + err));
 
 for (i = 1; i <= 5; i++) {
     client.HMSET('groom' + i, 0, -1, 1, -1, 2, -1);
+    client.LTRIM('croom' + i, -1, 0);
 }
 
 function shutdown() {
