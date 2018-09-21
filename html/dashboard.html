@@ -21,7 +21,7 @@
                 <form class="form-inline">
                     <label for="stuNo" class="sr-only">学号</label>
                     <input id="stuNo" type="text" class="form-control pr-2 mr-2" placeholder="学号">
-                    <button id="queue" type="submit" class="btn btn-primary">排队</button>
+                    <button id="queue" type="submit" class="btn btn-primary" disabled>排队</button>
                 </form>
                 <form class="form-inline">
                     <label for="stuNo" class="sr-only">面试教室</label>
@@ -51,8 +51,8 @@
                     <button id="roomq4" type="button" class="btn btn-secondary" disabled>空</button>
                 </div>
                 <div class="btn-group" role="group">
-                    <button id="room5" type="button" class="btn btn-warning" disabled>空</button>
-                    <button id="roomq5" type="button" class="btn btn-secondary" disabled>空</button>
+                    <button id="room5" type="button" class="btn btn-warning" disabled hidden>空</button>
+                    <button id="roomq5" type="button" class="btn btn-secondary" disabled hidden>空</button>
                 </div>
             </div>
             <div class="col py-4">
@@ -139,6 +139,7 @@
 
                 socket.on('roomnext', function(room) {
                     console.log('Room' + room + ' is ready');
+                    rooms[room-1].innerHTML = '空';
                 })
 
                 socket.on('disconnect', function (reason) {
@@ -178,6 +179,7 @@
 
                 console.log('开始推送' + stuNo);
                 socket.emit('pushroom', {room: room, stuNo: stuNo});
+                rooms[room-1].innerHTML = stuNo;
                 return false;
             }
         }

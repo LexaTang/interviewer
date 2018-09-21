@@ -29,15 +29,15 @@
                     <form>
                         <div class="py-4 px-4">
                         <div class="row">
-                            <input id="grade1" type="number" class="form-control ml-2 col-sm" placeholder="仪表">
-                            <input id="grade2" type="number" class="form-control ml-2 col-sm" placeholder="态度">
-                            <input id="grade3" type="number" class="form-control ml-2 col-sm" placeholder="回答">
+                            <input id="grade1" type="number" class="form-control ml-2 col-sm" min="0" max="10" placeholder="仪表">
+                            <input id="grade2" type="number" class="form-control ml-2 col-sm" min="0" max="10" placeholder="态度">
+                            <input id="grade3" type="number" class="form-control ml-2 col-sm" min="0" max="10" placeholder="回答">
                         </div>
                         <div class="form-group mt-3">
                             <label for="comment" class="sr-only">评注</label>
                             <textarea id="comment" class="form-control" placeholder="评注"></textarea>
                         </div>
-                        <button id="submit" type="submit" class="btn btn-primary">提交</button>
+                        <button id="submit" type="reset" class="btn btn-primary">提交</button>
                         <button id="nextone" type="reset" class="btn btn-warning">过号</button>
                         <button id="enforce"  type="reset" class="btn btn-danger">强制提交</button>
                         </div>
@@ -103,18 +103,24 @@
                 });
 
                 function objGrade() {
-                    return {grade: grade1.value + 11*grade2.value + 121*grade3.value, comment: comment.value, intNum: intNum}
+                    if (grade1.value >= 0 & grade1.value <= 10 & grade2.value >= 0 & grade2.value <= 10 & grade2.value >= 0 & grade2.value <= 10 )
+                    return {grade: grade1.value + 11*grade2.value + 121*grade3.value, comment: comment.value, intNum: intNum};
+                    else return 0;
                 }
 
                 document.getElementById('submit').onclick = function () {
                     console.log('开始提交');
+                    if (objGrade() == 0) {
+                        alert('分数超限');
+                        return false;
+                    }
                     console.log(objGrade());
                     socket.emit('grade', objGrade(), (ack) => {
                         console.log(ack);
                         if (ack != '提交成功') alert('提交失败，请检查js控制台');   
                     });
 
-                    return false;
+                    return true;
                 }
 
                 document.getElementById('enforce').onclick = function () {

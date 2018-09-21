@@ -4,8 +4,11 @@ const config = require('./config').config;
 var client = redis.createClient();
 var getInfo = require('./getinfo');
 
-
 client.on("error", (err) => console.log("Redis error:" + err));
+
+for (i = 1; i <= 5; i++) {
+    client.HMSET('groom' + i, 0, -1, 1, -1, 2, -1);
+}
 
 function shutdown() {
     client.end(true);
