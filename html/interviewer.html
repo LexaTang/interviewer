@@ -116,9 +116,9 @@
                         return false;
                     }
                     console.log(objGrade());
+                    document.getElementById('submit').disabled = true;
                     socket.emit('grade', objGrade(), (ack) => {
                         console.log(ack);
-                        document.getElementById('submit').disabled = true;
                         if (ack != '提交成功') alert('提交失败，请检查js控制台');   
                     });
 
