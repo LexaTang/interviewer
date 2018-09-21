@@ -18,8 +18,8 @@ function getInfo(id, cb) {
     });
 }
 
-function pushGrade(id, gradeAry, comment, cb) {
-    pool.query('INSERT INTO public.grades VALUES ($1, $2, $3);', [id, gradeAry, comment]).then(res => {
+function pushGrade(id, gradeAry, comment, room, cb) {
+    pool.query('INSERT INTO public.grades VALUES ($1, $2, $3, $4);', [id, gradeAry, comment, room]).then(res => {
         console.log('push grade database');
         if (cb) cb(res);
     })

@@ -79,7 +79,7 @@ function ssetGrade(room, intv, grade, comment, cb) {
                         client.LPOP('croom' + room, function (_, comm) {
                             client.LTRIM('croom' + room, -1, 0);
                             client.HMSET('groom' + room, 0, -1, 1, -1, 2, -1);
-                            getInfo.pushGrade(id, strAry, comm, cb);
+                            getInfo.pushGrade(id, strAry, comm, room, cb);
                         });
                     });
                 });
@@ -101,7 +101,7 @@ function setGrade(room, intv, grade, comment, cb) {
                 if (fin) client.GET('inroom' + room, function (_, id) {
                     client.HMGET('groom' + room, 0, 1, 2, function (_, strAry) {
                         client.LPOP('croom' + room, function(_, comm) {
-                            getInfo.pushGrade(id, strAry, comm, cb);
+                            getInfo.pushGrade(id, strAry, comm, room, cb);
                         });
                     });
                 });
