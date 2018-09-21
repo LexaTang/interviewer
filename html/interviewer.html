@@ -99,6 +99,7 @@
                         console.log(res);
                         iSum.value=JSON.stringify(res);
                         iSno.value=res.stnum;
+                        document.getElementById('submit').disabled = false;
                     })
                 });
 
@@ -117,6 +118,7 @@
                     console.log(objGrade());
                     socket.emit('grade', objGrade(), (ack) => {
                         console.log(ack);
+                        document.getElementById('submit').disabled = true;
                         if (ack != '提交成功') alert('提交失败，请检查js控制台');   
                     });
 
