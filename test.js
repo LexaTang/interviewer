@@ -74,3 +74,14 @@ describe('Pool', () => {
     }, 1));
     
 });
+
+describe('GetInfo', () => {
+    var getInfo = require('./getinfo');
+
+    it('Get info', (done) => {
+        getInfo.getInfo(1800300132, (res) => {
+            assert.equal(res.stnum, 1800300132);
+            done();
+        })
+    });
+})

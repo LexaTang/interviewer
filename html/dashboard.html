@@ -29,28 +29,8 @@
                     <button id="push" type="submit" class="btn btn-secondary">推送</button>
                 </form>
                 <div class="row mt-3 px-3">
-                    <label for="iId" class="sr-only">序号</label>
-                    <input id="iId" type="text" class="form-control" placeholder="序号">
-                    <label for="iNo" class="sr-only">学号</label>
-                    <input id="iNo" type="text" class="form-control" placeholder="学号">
-                    <label for="iName" class="sr-only">姓名</label>
-                    <input id="iName" type="text" class="form-control" placeholder="姓名">
-                    <label for="iSex" class="sr-only">性别</label>
-                    <input id="iSex" type="text" class="form-control" placeholder="性别">
-                    <label for="iScho" class="sr-only">学院</label>
-                    <input id="iScho" type="text" class="form-control" placeholder="学院">
-                    <label for="iMaj" class="sr-only">专业</label>
-                    <input id="iMaj" type="text" class="form-control" placeholder="专业">
-                    <label for="iPhone" class="sr-only">电话</label>
-                    <input id="iPhone" type="text" class="form-control" placeholder="电话">
-                    <label for="iMail" class="sr-only">邮箱</label>
-                    <input id="iMail" type="text" class="form-control" placeholder="邮箱">
-                    <label for="iQQ" class="sr-only">QQ</label>
-                    <input id="iQQ" type="text" class="form-control" placeholder="QQ">
-                    <label for="iBase" class="sr-only">基础</label>
-                    <input id="iBase" type="text" class="form-control" placeholder="基础">
                     <label for="iSum" class="sr-only">简介</label>
-                    <textarea id="iSum" type="text" class="form-control" placeholder="简介"></textarea>
+                    <textarea id="iSum" type="text" class="form-control" rows="20" placeholder="简介"></textarea>
                 </div>
             </div>
             <div class="col-sm-3 btn-group-vertical py-4">
@@ -97,11 +77,11 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
-    <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+    <script src="http://tcj.ac.cn:3001/socket.io/socket.io.js"></script>
     <script>
         function notStuNo(stuNo) {
             if (stuNo.length != 10) {
-                console.log('预期外的学号位数');
+                alert('预期外的学号位数');
                 return true;
             }
 
@@ -109,18 +89,8 @@
         }
 
         window.onload = function () {
-            const socket = io('http://localhost:3001');
+            const socket = io('http://tcj.ac.cn:3001');
 
-            var iId = document.getElementById('iId');
-            var iNo = document.getElementById('iNo');
-            var iName = document.getElementById('iName');
-            var iSex = document.getElementById('iSex');
-            var iScho = document.getElementById('iScho');
-            var iMaj = document.getElementById('iMaj');
-            var iPhone = document.getElementById('iPhone');
-            var iMail = document.getElementById('iMail');
-            var iQQ = document.getElementById('iQQ');
-            var iBase = document.getElementById('iBase');
             var iSum = document.getElementById('iSum');
 
             var rooms = new Array();
@@ -161,6 +131,16 @@
                     console.log('offline' + room);
                 })
 
+                socket.on('stuinfo', function(res) {
+                    console.log('stuinfo');
+                    console.log(res);
+                    iSum.value=JSON.stringify(res);
+                })
+
+                socket.on('roomnext', function(room) {
+                    console.log('Room' + room + ' is ready');
+                })
+
                 socket.on('disconnect', function (reason) {
                     offline();
                     if (reason === 'io server disconnect') socket.connect();
@@ -174,6 +154,7 @@
                 if (notStuNo(stuNo)) return false;
 
                 console.log('开始排队' + stuNo);
+                socket.emit('inqueue', stuNo);
 
                 return false;
             }
@@ -184,16 +165,19 @@
                 if (notStuNo(stuNo)) return false;
 
                 console.log('获取信息' + stuNo);
+                socket.emit('getinfo', stuNo);
 
                 return false;
             }
 
             document.getElementById('push').onclick = function () {
                 var stuNo = document.getElementById('stuNo').value;
+                var room = document.getElementById('room').value;
 
                 if (notStuNo(stuNo)) return false;
 
                 console.log('开始推送' + stuNo);
+                socket.emit('pushroom', {room: room, stuNo: stuNo});
                 return false;
             }
         }

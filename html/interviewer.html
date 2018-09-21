@@ -18,39 +18,22 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col py-3 bg-light">
-                <label for="iId" class="sr-only">序号</label>
-                <input id="iId" type="text" class="form-control" placeholder="序号">
-                <label for="iNo" class="sr-only">学号</label>
-                <input id="iNo" type="text" class="form-control" placeholder="学号">
-                <label for="iName" class="sr-only">姓名</label>
-                <input id="iName" type="text" class="form-control" placeholder="姓名">
-                <label for="iSex" class="sr-only">性别</label>
-                <input id="iSex" type="text" class="form-control" placeholder="性别">
-                <label for="iScho" class="sr-only">学院</label>
-                <input id="iScho" type="text" class="form-control" placeholder="学院">
-                <label for="iMaj" class="sr-only">专业</label>
-                <input id="iMaj" type="text" class="form-control" placeholder="专业">
-                <label for="iPhone" class="sr-only">电话</label>
-                <input id="iPhone" type="text" class="form-control" placeholder="电话">
-                <label for="iMail" class="sr-only">邮箱</label>
-                <input id="iMail" type="text" class="form-control" placeholder="邮箱">
-                <label for="iQQ" class="sr-only">QQ</label>
-                <input id="iQQ" type="text" class="form-control" placeholder="QQ">
-                <label for="iBase" class="sr-only">基础</label>
-                <input id="iBase" type="text" class="form-control" placeholder="基础">
+                <label for="iSno" class="sr-only">简介</label>
+                <input id="iSno" type="text" class="form-control" placeholder="学号">
                 <label for="iSum" class="sr-only">简介</label>
-                <textarea id="iSum" type="text" class="form-control" placeholder="简介"></textarea>
+                <textarea id="iSum" type="text" class="form-control" rows="20" placeholder="简介"></textarea>
             </div>
             <div class="col-sm-4 py-4">
                 <div class="card card-info">
                     <div class="card-header">评分表</div>
                     <form>
                         <div class="py-4 px-4">
-                        <div class="form-inline">
-                            <label for="grade">分数</label>
-                            <input id="grade" type="number" class="form-control ml-2 col" placeholder="6">
+                        <div class="row">
+                            <input id="grade1" type="number" class="form-control ml-2 col-sm" placeholder="仪表">
+                            <input id="grade2" type="number" class="form-control ml-2 col-sm" placeholder="态度">
+                            <input id="grade3" type="number" class="form-control ml-2 col-sm" placeholder="回答">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mt-3">
                             <label for="comment" class="sr-only">评注</label>
                             <textarea id="comment" class="form-control" placeholder="评注"></textarea>
                         </div>
@@ -69,28 +52,21 @@
             crossorigin="anonymous"></script>
         <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
-        <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+        <script src="http://tcj.ac.cn:3001/socket.io/socket.io.js"></script>
         <script>
 
             window.onload = function () {
-                const socket = io('http://localhost:3001');
+                const socket = io('http://tcj.ac.cn:3001');
 
                 var intNum = window.location.search.slice(1);
 
                 var connstat = document.getElementById('connstat');
-                var grade = document.getElementById('grade');
+                var grade1 = document.getElementById('grade1');
+                var grade2 = document.getElementById('grade2');
+                var grade3 = document.getElementById('grade3');
                 var comment = document.getElementById('comment');
 
-                var iId = document.getElementById('iId');
-                var iNo = document.getElementById('iNo');
-                var iName = document.getElementById('iName');
-                var iSex = document.getElementById('iSex');
-                var iScho = document.getElementById('iScho');
-                var iMaj = document.getElementById('iMaj');
-                var iPhone = document.getElementById('iPhone');
-                var iMail = document.getElementById('iMail');
-                var iQQ = document.getElementById('iQQ');
-                var iBase = document.getElementById('iBase');
+                var iSon = document.getElementById('iSno');
                 var iSum = document.getElementById('iSum');
 
                 function offline() {
@@ -117,10 +93,17 @@
                         if (reason === 'io server disconnect') socket.connect();
                         console.log('Disconnected:' + reason);  
                     });
+
+                    socket.on('new', function(res) {
+                        console.log('stuinfo');
+                        console.log(res);
+                        iSum.value=JSON.stringify(res);
+                        iSno.value=res.stnum;
+                    })
                 });
 
                 function objGrade() {
-                    return {stuno: iNo.value, grade: grade.value, comment: comment.value, intNum: intNum}
+                    return {grade: grade1.value + 11*grade2.value + 121*grade3.value, comment: comment.value, intNum: intNum}
                 }
 
                 document.getElementById('submit').onclick = function () {

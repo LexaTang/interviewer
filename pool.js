@@ -2,6 +2,7 @@ var redis = require('redis');
 var assert = require('assert');
 const config = require('./config').config;
 var client = redis.createClient();
+var getInfo = require('./getinfo');
 
 
 client.on("error", (err) => console.log("Redis error:" + err));
@@ -46,19 +47,85 @@ function popPool(cb, room) {
 
     if (room != 0) {
         return client.LPOP("room" + room, (_, id) => {
-            client.LPOP("room0", (_, id2) => {
-                assert.equal(id, id2);
+            client.LPOP("room0", () => {
+                client.SET('inroom' + room, id, () => {
                 cb(null, id);
+                })
             })
         });
     } 
     return client.LPOP("room0", cb);
 } 
 
+function isFin(room, cb) {
+    client.HMGET('groom' + room, 0, 1, 2, function(_, strAry) {
+        console.log(strAry);
+        console.log(strAry.indexOf('-1'));
+        console.log(strAry.indexOf('-1') == -1);
+        cb(strAry.indexOf('-1') == -1);
+    });
+}
+
+function ssetGrade(room, intv, grade, comment, cb) {
+    client.HSET('groom' + room, intv, grade, () => {
+        client.RPUSH('croom' + room, comment, function () {
+            isFin(room, function (fin) {
+                console.log('is fin ' + fin);
+                if (fin) client.GET('inroom' + room, function (_, id) {
+                    client.HMGET('groom' + room, 0, 1, 2, function (_, strAry) {
+                        client.LPOP('croom' + room, function (_, comm) {
+                            client.LTRIM('croom' + room, -1, 0);
+                            client.HMSET('groom' + room, 0, -1, 1, -1, 2, -1);
+                            getInfo.pushGrade(id, strAry, comm, cb);
+                        });
+                    });
+                });
+                else console.log('new grade in ' + room + 'intv ' + intv);
+            });
+        });
+    });
+}
+
+function setRoom(room, id, cb) {
+    client.SET('inroom' + room, id, cb);
+}
+
+function setGrade(room, intv, grade, comment, cb) {
+    client.HSET('groom' + room, intv, grade, () => {
+        client.RPUSH('croom' + room, comment, function () {
+            isFin(room, function (fin) {
+                console.log('is fin ' + fin);
+                if (fin) client.GET('inroom' + room, function (_, id) {
+                    client.HMGET('groom' + room, 0, 1, 2, function (_, strAry) {
+                        client.LPOP('croom' + room, function(_, comm) {
+                            getInfo.pushGrade(id, strAry, comm, cb);
+                        });
+                    });
+                });
+                else console.log('new grade in ' + room + 'intv ' + intv);
+            });
+        });
+    });
+
+}
+
+function nextOne(room, cb) {
+    client.LTRIM('croom' + room, -1, 0);
+    client.HMSET('groom' + room, 0, -1, 1, -1, 2, -1);
+    popPool(function (id) {
+        getInfo.getInfo(id, function(res) {
+            cb(res);
+        });
+    }, room);
+}
+
 module.exports = {
     pushPool: pushPool,
     getPool: getPool,
     popPool: popPool,
+    nextOne: nextOne,
+    setRoom: setRoom,
+    setGrade: ssetGrade,
     shutdown: shutdown,
     shortest: shortest,
 }
