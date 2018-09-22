@@ -61,8 +61,13 @@
                         <h2>总队列</h2>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="btn btn-info col-3 m-2">1500720134示例姓名</div>
+                        <div class="form-group">
+                            <select multiple class="form-control" id="inpool">
+                            </select>
+                        <div class="btn-group mt-2">
+                            <button id="enpool" type="button" class="btn btn-primary">插入</button>
+                            <button id="depool" type="button" class="btn btn-secondary">取出</button>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -100,6 +105,21 @@
                 rooms.push(document.getElementById('room' + i));
                 roomp.push(document.getElementById('roomq' + i));
             }
+
+            var inpool = document.getElementById('inpool');
+            document.getElementById('enpool').onclick = function() {
+                var newopt = document.createElement('option');
+                newopt.text = document.getElementById('stuNo').value;
+                inpool.add(newopt, null);
+                document.getElementById('stuNo').value = '';
+            };
+            document.getElementById('depool').onclick = function() {
+                document.getElementById('stuNo').value = inpool.options[inpool.selectedIndex].text;
+                inpool.remove(inpool.selectedIndex);
+            };
+
+
+
 
             function offline() {
                 connstat.innerHTML = '离线';
