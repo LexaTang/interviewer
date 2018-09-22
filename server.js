@@ -70,9 +70,10 @@ io.on('connect', function(socket) {
 
     socket.on('pushroom', function(msg) {
         getInfo.getInfo(msg.stuNo, function(res) {
-            console.log('push' + msg.stuNo + ' into' + msg.room);
             pool.setRoom(msg.room, msg.stuNo, function() {
+                console.log('push' + msg.stuNo + ' into' + msg.room);
                 socket.to('room' + msg.room).emit('new', res);
+                socket.emit('goroom', [res, msg.room]);
             });
         })
     })

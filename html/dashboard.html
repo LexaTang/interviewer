@@ -21,12 +21,12 @@
                 <form class="form-inline">
                     <label for="stuNo" class="sr-only">学号</label>
                     <input id="stuNo" type="text" class="form-control pr-2 mr-2" placeholder="学号">
-                    <button id="queue" type="submit" class="btn btn-primary" disabled>排队</button>
+                    <button id="queue" type="reset" class="btn btn-primary">排队</button>
                 </form>
                 <form class="form-inline">
                     <label for="stuNo" class="sr-only">面试教室</label>
                     <input id="room" type="number" class="form-control pr-2 mr-2" placeholder="面试教室">
-                    <button id="push" type="submit" class="btn btn-secondary">推送</button>
+                    <button id="push" type="reset" class="btn btn-secondary">推送</button>
                 </form>
                 <div class="row mt-3 px-3">
                     <label for="iSum" class="sr-only">简介</label>
@@ -93,6 +93,12 @@
             return false;
         }
 
+        function speak(text) {
+            var msg = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(msg);
+            console.log(text);
+        }
+
         window.onload = function () {
             const socket = io('http://tcj.ac.cn:3001');
 
@@ -113,12 +119,11 @@
                 inpool.add(newopt, null);
                 document.getElementById('stuNo').value = '';
             };
+
             document.getElementById('depool').onclick = function() {
                 document.getElementById('stuNo').value = inpool.options[inpool.selectedIndex].text;
                 inpool.remove(inpool.selectedIndex);
             };
-
-
 
 
             function offline() {
@@ -160,7 +165,17 @@
                 socket.on('roomnext', function(room) {
                     console.log('Room' + room + ' is ready');
                     rooms[room-1].innerHTML = '空';
+                    if (roomp[room-1].innerHTML != '空') {      
+                        socket.emit('pushroom', {room: room, stuNo: roomp[room-1].innerHTML});
+                        rooms[room-1].innerHTML = roomp[room-1].innerHTML;
+                        roomp[room-1].innerHTML = '空';
+                    }
                 })
+
+                socket.on('goroom', function(res) {
+                    console.log(res);
+                    speak('请' + res[0].stnum + res[0].name + '同学，进入' + res[1] + '号教室面试。');
+                });
 
                 socket.on('disconnect', function (reason) {
                     offline();
@@ -171,11 +186,19 @@
 
             document.getElementById('queue').onclick = function () {
                 var stuNo = document.getElementById('stuNo').value;
+                var room = document.getElementById('room').value;
 
                 if (notStuNo(stuNo)) return false;
 
                 console.log('开始排队' + stuNo);
-                socket.emit('inqueue', stuNo);
+
+                if (rooms[room - 1].innerHTML == '空') {
+                    socket.emit('pushroom', {room: room, stuNo: stuNo});
+                    rooms[room-1].innerHTML = stuNo;
+                    return false;
+                }
+                roomp[room-1].innerHTML = stuNo;
+                //socket.emit('inqueue', stuNo);
 
                 return false;
             }
@@ -199,6 +222,7 @@
 
                 console.log('开始推送' + stuNo);
                 socket.emit('pushroom', {room: room, stuNo: stuNo});
+                
                 rooms[room-1].innerHTML = stuNo;
                 return false;
             }
