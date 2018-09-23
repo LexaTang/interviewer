@@ -219,6 +219,7 @@
                 var room = document.getElementById('room').value;
 
                 if (notStuNo(stuNo)) return false;
+                if (confirm('确认要使用推送吗？') == false) return false;
 
                 console.log('开始推送' + stuNo);
                 socket.emit('pushroom', {room: room, stuNo: stuNo});
