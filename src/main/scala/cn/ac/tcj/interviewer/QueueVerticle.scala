@@ -39,6 +39,7 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
   /** Initialze the queue and interview rooms. */
   override def start(): Unit = {
     logger.info("Queue service is starting.")
+    vipEnqueue(eb.consumer("queue.envip"))
     enqueue(eb.consumer("queue.enqueue"))
     dequeue(eb.consumer("queue.dequeue"))
     get(eb.consumer("queue.get"))
@@ -72,7 +73,7 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
     })
   } 
 
-  def VIPenqueue(consumer: MessageConsumer[JsonObject]) = {
+  def vipEnqueue(consumer: MessageConsumer[JsonObject]) = {
     consumer.handler(message => {
       val id = message.body.getString("id")
       val port = message.body.getInteger("port")
@@ -80,21 +81,23 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
         case Failure(t) => {
           logger.info(s"Rooms busy, fallback interviewee ${id} into queue: ${t}")
           eb.send("queue.enqueue", id)
+          message.reply("fallback")
         }
-        case Success(message) => {
-          val id = message.body
-          if (id.isEmpty) {
+        case Success(m) => {
+          val next = m.body
+          if (next.isEmpty) {
             eb.send(s"room${port}.enqueue", id)
-            logger.info(s"Send interviewee ${id} into ${port}")
+            logger.info(s"Send vip ${id} into ${port}")
           } else {
             vipQueue += ((id, port))
           }
+          message.reply("success")
         }
       }
     })
   }
 
-  def dequeue(consumer: MessageConsumer[Int]) = {
+  def dequeue(consumer: MessageConsumer[Integer]) = {
     consumer.handler(message => {
       logger.info(s"Room ${message.body} require to dequeue.")
       if (vipQueue.find(_._2 == message.body).nonEmpty) {

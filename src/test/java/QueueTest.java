@@ -50,44 +50,46 @@ class QueueTest {
     testContext.awaitCompletion(2, TimeUnit.SECONDS);
   }
 
-  static Future<Void> enqueueFutureGenerator(String i, EventBus eventBus, boolean en) {
+  static Future<Void> enqueueFutureGenerator(String i, EventBus eventBus) {
     return Future.future(promise -> eventBus.request("queue.enqueue", i, reply -> {
-                assertEquals(en ? "enqueued" : 2, reply.result().body());
                 promise.complete();
               }));
   }
 
   @Test
   void dequeue(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var replyReceived = testContext.checkpoint(2);
+    var replyReceived = testContext.checkpoint(3);
 
     var eventBus = vertx.eventBus();
     var interviewer = new JsonArray().add(1).add(2);
     var config = new JsonObject().put("interviewers", interviewer).put("port", 2);
     vertx.deployVerticle("scala:cn.ac.tcj.interviewer.HttpRoomVerticle", new DeploymentOptions().setConfig(config),res -> {
       
-      var enqueueFuture1 = enqueueFutureGenerator("1500720134", eventBus, false);
-      var enqueueFuture2 = enqueueFutureGenerator("1500720130", eventBus, false);
-      var enqueueFuture3 = enqueueFutureGenerator("1500720132", eventBus, true);
+      var enqueueFuture1 = enqueueFutureGenerator("1500720134", eventBus);
+      var enqueueFuture2 = enqueueFutureGenerator("1500720130", eventBus);
+      var enqueueFuture3 = enqueueFutureGenerator("1500720132", eventBus);
       CompositeFuture.all(enqueueFuture1, enqueueFuture2, enqueueFuture3).setHandler(ar -> {
         assertTrue(ar.succeeded());
         CompositeFuture.all(
           Future.future( promise -> eventBus.request("room2.interviewing", null, replyInt -> {
-            assertEquals("1500720134", replyInt.result().body());
             replyReceived.flag();
             promise.complete();
           })),
           Future.future( promise -> eventBus.request("room2.next", null, replyInt -> {
-            assertEquals("1500720130", replyInt.result().body());
             replyReceived.flag();
             promise.complete();
           }))).setHandler(arGet -> {
             assertTrue(arGet.succeeded());
-            eventBus.request("queue.dequeue", 1,  replyDequeue -> assertEquals("1500720132", replyDequeue.result().body()));
+            eventBus.request("queue.dequeue", 1,  replyDequeue -> {
+              assertEquals("1500720132", replyDequeue.result().body());
+              replyReceived.flag();
+            }
+            );
           });
       });
     });
 
     testContext.awaitCompletion(2, TimeUnit.SECONDS);
   }
+
 }

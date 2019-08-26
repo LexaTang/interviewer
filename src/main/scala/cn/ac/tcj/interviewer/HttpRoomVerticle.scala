@@ -23,10 +23,10 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
     eb.consumer(s"room${port}.enqueue", enqueueHandler)
     commentIn(eb.consumer(s"room${port}.comm"))
     eb.consumer(s"room${port}.dequeue").handler((message: Message[Object]) => dequeue)
-    eb.consumer(s"room${port}.interviewing").handler((message: Message[Object]) => {
+    eb.consumer(s"room${port}.interviewing").handler((message: Message[Any]) => {
       message.reply(interviewing)
     })
-    eb.consumer(s"room${port}.next").handler((message: Message[Object]) => {
+    eb.consumer(s"room${port}.next").handler((message: Message[Any]) => {
       message.reply(nextinterview)
     })
     eb.consumer(s"room${port}.vip").handler((message: Message[String]) => {

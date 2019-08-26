@@ -1,9 +1,6 @@
-package cn.ac.tcj.interviewer;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
 import io.vertx.core.Promise;
 import io.vertx.core.json.*;
 import io.vertx.core.Future;
