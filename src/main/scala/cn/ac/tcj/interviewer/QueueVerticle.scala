@@ -25,7 +25,7 @@ trait HttpQueueTrait {
     eb.send("http.dequeue", Json.obj(("interviewee", interviewee), ("room", room)))
   }
 
-  def eb: EventBus
+  val eb: EventBus
 }
 
 /** Controll how should interview queued.
@@ -57,7 +57,7 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
     consumer.handler(message => {
       val id = message.body()
       //Check if any room can accept this interviewee.
-      eb.requestFuture[Integer]("room.enqueue", id) onComplete {
+      eb.requestFuture[Integer]("room.enqueue", id, DeliveryOptions().setSendTimeout(1000)) onComplete {
         case Failure(t) => {
           logger.info(s"Rooms busy, fallback interviewee ${id} into queue: ${t}")
           queue += id
@@ -76,7 +76,7 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
     consumer.handler(message => {
       val id = message.body.getString("id")
       val port = message.body.getInteger("port")
-      eb.requestFuture[String](s"room${port}.interviewing", id) onComplete {
+      eb.requestFuture[String](s"room${port}.next", id) onComplete {
         case Failure(t) => {
           logger.info(s"Rooms busy, fallback interviewee ${id} into queue: ${t}")
           eb.send("queue.enqueue", id)
@@ -140,5 +140,5 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
     })
   }
 
-  def eb = vertx.eventBus
+  lazy val eb = vertx.eventBus
 }

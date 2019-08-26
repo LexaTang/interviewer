@@ -1,29 +1,12 @@
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
-
-import static org.junit.Assume.assumeNotNull;
+import io.vertx.core.*;
+import io.vertx.core.eventbus.*;
+import io.vertx.core.json.*;
+import io.vertx.junit5.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
-
-import java.lang.reflect.Executable;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestReporter;
+import org.junit.jupiter.api.*;
+import java.util.concurrent.TimeUnit;
 
 @ExtendWith(VertxExtension.class)
 class QueueTest {
@@ -67,10 +50,9 @@ class QueueTest {
     testContext.awaitCompletion(2, TimeUnit.SECONDS);
   }
 
-  static Future<Void> enqueueFutureGenerator(String i, EventBus eventBus) {
+  static Future<Void> enqueueFutureGenerator(String i, EventBus eventBus, boolean en) {
     return Future.future(promise -> eventBus.request("queue.enqueue", i, reply -> {
-                assertTrue(reply.succeeded());
-                assertEquals(2, reply.result().body());
+                assertEquals(en ? "enqueued" : 2, reply.result().body());
                 promise.complete();
               }));
   }
@@ -84,18 +66,25 @@ class QueueTest {
     var config = new JsonObject().put("interviewers", interviewer).put("port", 2);
     vertx.deployVerticle("scala:cn.ac.tcj.interviewer.HttpRoomVerticle", new DeploymentOptions().setConfig(config),res -> {
       
-      var enqueueFuture1 = enqueueFutureGenerator("1500720134", eventBus);
-      var enqueueFuture2 = enqueueFutureGenerator("1500720130", eventBus);
-      CompositeFuture.all(enqueueFuture1, enqueueFuture2).setHandler(ar -> {
+      var enqueueFuture1 = enqueueFutureGenerator("1500720134", eventBus, false);
+      var enqueueFuture2 = enqueueFutureGenerator("1500720130", eventBus, false);
+      var enqueueFuture3 = enqueueFutureGenerator("1500720132", eventBus, true);
+      CompositeFuture.all(enqueueFuture1, enqueueFuture2, enqueueFuture3).setHandler(ar -> {
         assertTrue(ar.succeeded());
-        eventBus.request("room2.interviewing", null, replyInt -> {
-          assertEquals("1500720134", replyInt.result().body());
-          replyReceived.flag();
-        });
-        eventBus.request("room2.next", null, replyInt -> {
-          assertEquals("1500720130", replyInt.result().body());
-          replyReceived.flag();
-        });
+        CompositeFuture.all(
+          Future.future( promise -> eventBus.request("room2.interviewing", null, replyInt -> {
+            assertEquals("1500720134", replyInt.result().body());
+            replyReceived.flag();
+            promise.complete();
+          })),
+          Future.future( promise -> eventBus.request("room2.next", null, replyInt -> {
+            assertEquals("1500720130", replyInt.result().body());
+            replyReceived.flag();
+            promise.complete();
+          }))).setHandler(arGet -> {
+            assertTrue(arGet.succeeded());
+            eventBus.request("queue.dequeue", 1,  replyDequeue -> assertEquals("1500720132", replyDequeue.result().body()));
+          });
       });
     });
 

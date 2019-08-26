@@ -20,6 +20,7 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
     for (i <- 0 until jsonInterviewers.size) buffer += jsonInterviewers.getInteger(i)
     interviewers = buffer.toArray
     enqueueConsumer = Some(enqueueConsumerGenerator)
+    eb.consumer(s"room${port}.enqueue", enqueueHandler)
     commentIn(eb.consumer(s"room${port}.comm"))
     eb.consumer(s"room${port}.dequeue").handler((message: Message[Object]) => dequeue)
     eb.consumer(s"room${port}.interviewing").handler((message: Message[Object]) => {
@@ -65,20 +66,22 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
   var enqueueConsumer: Option[MessageConsumer[String]] = None
 
   def enqueueConsumerGenerator: MessageConsumer[String] = 
-    eb.consumer("room.enqueue").handler(message => {
-      if (interviewing.isEmpty) {
-        interviewing = message.body
-        message.reply(port)
-      }
-      else if (nextinterview.isEmpty) {
-        nextinterview = message.body
-        enqueueConsumerUnregister
-        message.reply(port)
-      } else {
-        message.fail(0, "Room is busy!")
-        logger.error("Room is busy but enqueueConsumer have not unregistered!")
-      }
-    })
+    eb.consumer("room.enqueue", enqueueHandler)
+  
+  def enqueueHandler(message: Message[String]) {
+    if (interviewing.isEmpty) {
+      interviewing = message.body
+      message.reply(port)
+    }
+    else if (nextinterview.isEmpty) {
+      nextinterview = message.body
+      enqueueConsumerUnregister
+      message.reply(port)
+    } else {
+      message.fail(0, "Room is busy!")
+      logger.error("Room is busy but enqueueConsumer have not unregistered!")
+    }
+  }
 
   def enqueueConsumerUnregister {
     if (enqueueConsumer.nonEmpty) enqueueConsumer.get.unregisterFuture onComplete {
@@ -110,5 +113,5 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
 
   var port = 0
 
-  def eb = vertx.eventBus()
+  lazy val eb = vertx.eventBus()
 }
