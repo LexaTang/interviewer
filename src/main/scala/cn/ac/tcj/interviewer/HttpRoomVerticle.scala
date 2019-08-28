@@ -35,12 +35,16 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
       else if (nextinterview.isEmpty) nextinterview = message.body
       else logger.error("Room is not empty but send vip!")
     })
+    eb.consumer(s"room${port}.shutdown").handler((message: Message[String]) => {
+      shutdown = true
+      message.reply("shutdown")
+    })
   }
 
   def dequeue {
     if (nextinterview.nonEmpty) {
       interviewing = nextinterview
-      return
+      nextinterview = ""
     }
     if (shutdown) return
     dequeueFuture onComplete {
@@ -52,6 +56,7 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
         if (interviewing.isEmpty) interviewing = message.body
         else if (nextinterview.isEmpty) {
           nextinterview = message.body
+          message.reply(port)
           enqueueConsumerUnregister
         } else {
           logger.error(s"Room is busy but dequeue still was called! ${message.body}")
@@ -91,7 +96,7 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
   }
 
   def dequeueFuture = {
-    eb.requestFuture("queue.dequeue", s"${port}")
+    eb.requestFuture("queue.dequeue", port)
   }
   
   var comments: Map[Int, String] = new TreeMap[Int, String]
@@ -102,12 +107,16 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
       if (interviewers.forall(comments contains _)) {
         val jsonComm = Json.emptyObj
         comments.foreach(i => jsonComm.put(s"${i._1}",i._2))
-        eb.send("db.comm", jsonComm)
-        if (nextinterview.nonEmpty) {
-          interviewing = nextinterview
-          nextinterview = ""
-        } else dequeue
-      }
+        comments.clear()
+        eb.requestFuture[Object]("db.comm", jsonComm) onComplete {
+          case Failure(t) => {
+            logger.error(t)
+            message.fail(0, "db error")
+          }
+          case Success(_) => message.reply("saved")
+        }
+        dequeue
+      } else message.reply("cached")
     })
   }
 

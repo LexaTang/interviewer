@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cn.ac.tcj</groupId>
   <artifactId>interviewer</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   <name>${project.artifactId}</name>
   <description>An interviewer project for GUET software department.</description>
   <inceptionYear>2018</inceptionYear>

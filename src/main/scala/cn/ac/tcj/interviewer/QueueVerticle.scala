@@ -77,7 +77,7 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
     consumer.handler(message => {
       val id = message.body.getString("id")
       val port = message.body.getInteger("port")
-      eb.requestFuture[String](s"room${port}.next", id) onComplete {
+      eb.requestFuture[String](s"room${port}.next", id, DeliveryOptions().setSendTimeout(1000)) onComplete {
         case Failure(t) => {
           logger.info(s"Rooms busy, fallback interviewee ${id} into queue: ${t}")
           eb.send("queue.enqueue", id)
@@ -88,10 +88,11 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
           if (next.isEmpty) {
             eb.send(s"room${port}.enqueue", id)
             logger.info(s"Send vip ${id} into ${port}")
+            message.reply("sent")
           } else {
             vipQueue += ((id, port))
+            message.reply("success")
           }
-          message.reply("success")
         }
       }
     })
