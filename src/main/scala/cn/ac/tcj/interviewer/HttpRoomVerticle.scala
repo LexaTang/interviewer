@@ -108,7 +108,7 @@ class HttpRoomVerticle extends ScalaVerticle with RoomVerticle with LoggerTrait 
         val jsonComm = Json.emptyObj
         comments.foreach(i => jsonComm.put(s"${i._1}",i._2))
         comments.clear()
-        eb.requestFuture[Object]("db.comm", jsonComm) onComplete {
+        eb.requestFuture[Object]("db.comm", Json.obj(("id", interviewing), ("comm", jsonComm))) onComplete {
           case Failure(t) => {
             logger.error(t)
             message.fail(0, "db error")

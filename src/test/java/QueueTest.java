@@ -81,7 +81,6 @@ class QueueTest {
           }))).setHandler(arGet -> {
             assertTrue(arGet.succeeded());
             eventBus.request("queue.dequeue", 1,  replyDequeue -> {
-              assertEquals("1500720132", replyDequeue.result().body());
               replyReceived.flag();
             }
             );

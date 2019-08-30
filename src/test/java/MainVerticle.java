@@ -22,7 +22,10 @@ public class MainVerticle extends AbstractVerticle {
             new DeploymentOptions().setConfig(config2), id -> promise.complete()));
         Future<Void> httpFuture = Future.future(
             promise -> vertx.deployVerticle("scala:cn.ac.tcj.interviewer.HttpVerticle", id -> promise.complete()));
-        CompositeFuture.all(room1Future, room2Future, httpFuture).setHandler(all -> startPromise.complete());
+        var dbConfig = new JsonObject().put("db", new JsonObject());
+        Future<Void> dbFuture = Future.future(
+            promise -> vertx.deployVerticle("scala:cn.ac.tcj.interviewer.DatabaseVerticle", new DeploymentOptions().setConfig(dbConfig),id -> promise.complete()));
+        CompositeFuture.all(room1Future, room2Future, httpFuture, dbFuture).setHandler(all -> startPromise.complete());
       } else
         System.out.println("Deployment failed!");
     });

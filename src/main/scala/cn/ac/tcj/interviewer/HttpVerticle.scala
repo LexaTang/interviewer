@@ -21,7 +21,7 @@ import io.vertx.lang.scala.json.Json
  *  DELETE /api/room/:port Shut this room down .
  */
 class HttpVerticle extends ScalaVerticle with LoggerTrait {
-  override def start(): Unit = {
+  override def start() {
     val server = vertx.createHttpServer()
 
     val router = Router.router(vertx);
