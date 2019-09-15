@@ -4,10 +4,6 @@
 
 An interview queue project for GUET software department.
 
-## TODO
-
-Database moudle still needs development.
-
 ## License
 
 MIT
