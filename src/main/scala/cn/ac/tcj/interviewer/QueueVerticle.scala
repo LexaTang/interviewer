@@ -138,8 +138,8 @@ class QueueVerticle extends ScalaVerticle with QueueTrait with HttpQueueTrait wi
 
   def getVip(consumer: MessageConsumer[String]) {
     consumer.handler(message => {
-      val jsonVips = Json.emptyObj
-      vipQueue.foreach(vip => jsonVips.put(vip._1, vip._2))
+      val jsonVips = Json.emptyArr
+      vipQueue.foreach(vip => jsonVips.add(Json.emptyObj.put(vip._1, vip._2)))
       message.reply(jsonVips)
     })
   }
