@@ -1,14 +1,12 @@
 package cn.ac.tcj.interviewer
 
-import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.eventbus.{ Message, MessageConsumer, DeliveryOptions }
-import io.vertx.core.json.JsonObject
+import io.vertx.scala.core.eventbus.{Message, MessageConsumer}
 
-import scala.concurrent.Future
 import scala.collection.mutable.Map
+import scala.concurrent.Future
 
 /** RoomVerticle trait.
- *  
+ *
  *  Should receive options of interviewer.
  *  Implement consumer of room.enqueue and requester of queue.dequeue, send db.comment
  *  A way to notice interviewer the new interviewee.

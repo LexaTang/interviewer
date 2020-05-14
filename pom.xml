@@ -1,5 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>cn.ac.tcj</groupId>
   <artifactId>interviewer</artifactId>
@@ -21,7 +22,7 @@
     <encoding>UTF-8</encoding>
     <scala.version>2.12.8</scala.version>
     <scala.compat.version>2.12</scala.compat.version>
-    <vertx.version>3.8.0</vertx.version>
+    <vertx.version>3.9.0</vertx.version>
     <spec2.version>4.5.1</spec2.version>
     <junit.jupiter.version>5.4.2</junit.jupiter.version>
     <main.verticle>cn.ac.tcj.interviewer.MainVerticle</main.verticle>
@@ -48,7 +49,7 @@
       <artifactId>vertx-mongo-client-scala_${scala.compat.version}</artifactId>
       <version>${vertx.version}</version>
     </dependency>
-    
+
 
     <!-- Test -->
     <dependency>
@@ -192,6 +193,10 @@
             <arg>-P:semanticdb:sourceroot:${maven.multiModuleProjectDirectory}</arg>
             <arg>-Yrangepos</arg>
             <arg>-Xplugin-require:semanticdb</arg>
+            <arg>-unchecked</arg>
+            <arg>-deprecation</arg>
+            <arg>-explaintypes</arg>
+            <arg>-feature</arg>
           </args>
         </configuration>
       </plugin>

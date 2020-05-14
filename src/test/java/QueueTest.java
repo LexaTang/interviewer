@@ -1,12 +1,19 @@
 import io.vertx.core.*;
-import io.vertx.core.eventbus.*;
-import io.vertx.core.json.*;
-import io.vertx.junit5.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.*;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestReporter;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.*;
+
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(VertxExtension.class)
 class QueueTest {
@@ -64,27 +71,27 @@ class QueueTest {
     var interviewer = new JsonArray().add(1).add(2);
     var config = new JsonObject().put("interviewers", interviewer).put("port", 2);
     vertx.deployVerticle("scala:cn.ac.tcj.interviewer.HttpRoomVerticle", new DeploymentOptions().setConfig(config),res -> {
-      
+
       var enqueueFuture1 = enqueueFutureGenerator("1500720134", eventBus);
       var enqueueFuture2 = enqueueFutureGenerator("1500720130", eventBus);
       var enqueueFuture3 = enqueueFutureGenerator("1500720132", eventBus);
-      CompositeFuture.all(enqueueFuture1, enqueueFuture2, enqueueFuture3).setHandler(ar -> {
+      CompositeFuture.all(enqueueFuture1, enqueueFuture2, enqueueFuture3).onComplete(ar -> {
         assertTrue(ar.succeeded());
         CompositeFuture.all(
-          Future.future( promise -> eventBus.request("room2.interviewing", null, replyInt -> {
+          Future.future(promise -> eventBus.request("room2.interviewing", null, replyInt -> {
             replyReceived.flag();
             promise.complete();
           })),
-          Future.future( promise -> eventBus.request("room2.next", null, replyInt -> {
+          Future.future(promise -> eventBus.request("room2.next", null, replyInt -> {
             replyReceived.flag();
             promise.complete();
-          }))).setHandler(arGet -> {
-            assertTrue(arGet.succeeded());
-            eventBus.request("queue.dequeue", 1,  replyDequeue -> {
+          }))).onComplete(arGet -> {
+          assertTrue(arGet.succeeded());
+          eventBus.request("queue.dequeue", 1, replyDequeue -> {
               replyReceived.flag();
             }
-            );
-          });
+          );
+        });
       });
     });
 

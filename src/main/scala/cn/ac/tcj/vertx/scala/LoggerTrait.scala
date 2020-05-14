@@ -1,6 +1,6 @@
 package cn.ac.tcj.vertx.scala
 
-import io.vertx.core.spi.logging.LogDelegate
+import scala.language.reflectiveCalls
 
 trait LoggerTrait {
   val logger = new Logger(io.vertx.core.logging.LoggerFactory.getLogger(s"scala:${this.getClass.getName}"))
@@ -40,7 +40,7 @@ class Logger(logger: io.vertx.core.logging.Logger) {
 
   def warn(message: Object, t: Throwable) =
     ((l: {def warn(m: Object, t: Throwable): Unit}) => l.warn(message, t))(logger)
-  
+
   def getDelegate = logger.getDelegate
   def isDebugEnabled = logger.isDebugEnabled
   def isInfoEnabled = logger.isInfoEnabled
